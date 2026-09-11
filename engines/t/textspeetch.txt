@@ -1,0 +1,193 @@
+# Text-to-Speech Engine
+
+This C++ program provides interactive text-to-speech functionality using the
+eSpeak NG library. It can speak typed text, read text files, change voices, and
+adjust speech speed and pitch.
+
+## 1. Dependencies and headers
+
+The program includes standard C++ libraries for:
+
+- Console input and output
+- File reading
+- String handling
+- Exception handling
+
+It searches for the eSpeak NG header in either location:
+
+```cpp
+#include <espeak-ng/speak_lib.h>
+#include <espeak/speak_lib.h>
+```
+
+If neither header is available, compilation stops with an error. The eSpeak NG
+development package must therefore be installed before building the program.
+
+## 2. `TextToSpeech` class
+
+The `TextToSpeech` class wraps the eSpeak NG API and controls audio playback.
+
+### Initialization
+
+The constructor initializes eSpeak NG for real-time playback:
+
+```cpp
+espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 500, nullptr, 0);
+```
+
+- `AUDIO_OUTPUT_PLAYBACK` sends audio to the default output device.
+- `500` configures an internal buffer of approximately 500 milliseconds.
+- `nullptr` uses the default eSpeak NG voice-data directory.
+
+If initialization fails, the constructor throws an exception.
+
+### Cleanup
+
+When the object is destroyed, it finishes queued speech and shuts down eSpeak NG:
+
+```cpp
+espeak_Synchronize();
+espeak_Terminate();
+```
+
+## 3. Voice configuration
+
+The `setVoice()` method selects a voice by name:
+
+```cpp
+tts.setVoice("en");
+```
+
+Examples include:
+
+- `en` - English
+- `en-us` - American English
+- `en-uk` - British English
+- `fr` - French
+- `es` - Spanish
+- `de` - German
+
+If the requested voice is unavailable, the program prints a warning and keeps
+the current or default voice.
+
+## 4. Speech rate and pitch
+
+The `setRate()` method sets the speech rate in words per minute:
+
+```cpp
+tts.setRate(175);
+```
+
+Values are limited to the range `80` to `450` WPM.
+
+The `setPitch()` method sets the pitch:
+
+```cpp
+tts.setPitch(50);
+```
+
+Values are limited to the range `0` to `100`, with `50` as the default.
+
+## 5. Speaking text
+
+The `speak()` method performs the following steps:
+
+1. Rejects empty input.
+2. Sends the text to eSpeak NG.
+3. Automatically detects the character encoding.
+4. Plays the generated audio.
+5. Waits for playback to finish.
+
+The final synchronization step makes speech blocking. The program waits until
+the current sentence or file has finished before accepting more input.
+
+## 6. Reading text files
+
+The `readFileContents()` helper reads an entire text file:
+
+1. Opens the requested file.
+2. Throws an exception if the file cannot be opened.
+3. Reads the complete file into a string.
+4. Returns the string to the caller.
+
+## 7. Program startup
+
+Inside `main()`, the program creates a `TextToSpeech` object and applies the
+default configuration:
+
+| Setting | Default value |
+| --- | --- |
+| Voice | `en` |
+| Speed | `175` WPM |
+| Pitch | `50` |
+
+## 8. Command-line file mode
+
+If a file path is supplied when starting the program, the program reads and
+speaks that file, then exits:
+
+```text
+tts notes.txt
+```
+
+## 9. Interactive mode
+
+When no file path is provided, the program displays a prompt:
+
+```text
+TTS >
+```
+
+It reads one line at a time and interprets commands or regular text.
+
+### Supported commands
+
+| Command | Action |
+| --- | --- |
+| `:file <path>` | Reads and speaks a text file |
+| `:voice <name>` | Changes the voice |
+| `:speed <wpm>` | Changes the speech rate |
+| `:pitch <value>` | Changes the pitch |
+| `:exit` or `:quit` | Exits the program |
+| Any other text | Speaks the text immediately |
+
+### Examples
+
+```text
+:voice fr
+```
+
+Changes the voice to French.
+
+```text
+:speed 220
+```
+
+Sets the speech rate to 220 words per minute.
+
+```text
+:pitch 70
+```
+
+Sets the pitch to 70.
+
+```text
+:file message.txt
+```
+
+Reads and speaks `message.txt`.
+
+```text
+Hello, this is Lumen.
+```
+
+Speaks the typed sentence immediately.
+
+## 10. Shutdown and error handling
+
+The interactive loop ends when the user enters `:exit`, `:quit`, or sends EOF.
+The `TextToSpeech` destructor then finishes any remaining audio and terminates
+eSpeak NG.
+
+Exceptions are caught in `main()`. Fatal errors are printed to the console, and
+the program exits with status code `1`.
