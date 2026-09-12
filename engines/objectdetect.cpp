@@ -4,6 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <random>
+#include <stdexcept>
 
 // Enum representing the criticality level of an obstacle
 enum class Criticality {
@@ -13,10 +14,14 @@ enum class Criticality {
 };
 
 // Struct holding configurable distance thresholds (in meters)
-struct ThresholdConfig {//so this just example to just test the code and we can modify the distance after we discuss the limites for the range
-    double dangerDistance = 2.0;   // Distance < 2.0m  -> Danger
-    double cautionDistance = 5.0;  // 2.0m <= dist <= 5.0m -> Caution
-                                   // Distance > 5.0m  -> Safe
+struct ThresholdConfig {
+    double dangerDistance = 2.0;   // Distance < dangerDistance -> Danger
+    double cautionDistance = 5.0;  // dangerDistance <= distance <= cautionDistance -> Caution
+                                   // Distance > cautionDistance -> Safe
+
+    bool isValid() const {
+        return dangerDistance >= 0.0 && cautionDistance > dangerDistance;
+    }
 };
 
 // ANSI Color Codes for terminal output
@@ -38,8 +43,15 @@ public:
 
     // Update thresholds at runtime
     void setThresholds(double dangerDist, double cautionDist) {
+        if (dangerDist < 0.0 || cautionDist <= dangerDist) {
+            throw std::invalid_argument("caution distance must be greater than danger distance");
+        }
         thresholds.dangerDistance = dangerDist;
         thresholds.cautionDistance = cautionDist;
+    }
+
+    const ThresholdConfig& getThresholds() const {
+        return thresholds;
     }
 
     // Classify criticality based on measured distance
@@ -86,7 +98,11 @@ public:
 // Mode 1: Simulated real-time sensor stream
 void runSimulation(const ObstacleDetector& detector, int readingCount = 20) {
     std::cout << Color::BOLD << "\n--- Starting Real-Time Sensor Simulation ---\n" << Color::RESET;
-    std::cout << "Thresholds: Danger < 2.0m | Caution 2.0m - 5.0m | Safe > 5.0m\n\n";
+    const ThresholdConfig& thresholds = detector.getThresholds();
+    std::cout << "Thresholds: Danger < " << thresholds.dangerDistance
+              << "m | Caution " << thresholds.dangerDistance << "m - "
+              << thresholds.cautionDistance << "m | Safe > "
+              << thresholds.cautionDistance << "m\n\n";
 
     std::mt19937 rng(std::random_device{}());
     // Simulate obstacle distances from 0.3m up to 8.0m
@@ -126,9 +142,24 @@ void runManualTest(const ObstacleDetector& detector) {
     }
 }
 
-int main() {
-    // Configurable thresholds: < 2.0m = Danger, <= 5.0m = Caution, > 5.0m = Safe
+int main(int argc, char** argv) {
+    // Configurable thresholds: < danger = Danger, <= caution = Caution, > caution = Safe
     ThresholdConfig config{2.0, 5.0};
+    try {
+        if (argc > 1) {
+            config.dangerDistance = std::stod(argv[1]);
+        }
+        if (argc > 2) {
+            config.cautionDistance = std::stod(argv[2]);
+        }
+    } catch (const std::exception&) {
+        std::cerr << "Usage: objectdetect [danger_distance_m] [caution_distance_m]\n";
+        return 1;
+    }
+    if (!config.isValid()) {
+        std::cerr << "[ERROR] Caution distance must be greater than danger distance.\n";
+        return 1;
+    }
     ObstacleDetector detector(config);
 
     std::cout << Color::BOLD << "==========================================\n";

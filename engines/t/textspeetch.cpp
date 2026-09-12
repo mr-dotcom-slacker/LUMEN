@@ -5,7 +5,7 @@
 #include <vector>
 #include <stdexcept>
 
-// Include eSpeak NG C API headers
+// Include eSpeak NG C API headers 
 // Depending on distribution/installation, this header is usually at <espeak-ng/speak_lib.h>
 #if __has_include(<espeak-ng/speak_lib.h>)
     #include <espeak-ng/speak_lib.h>

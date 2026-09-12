@@ -1,0 +1,62 @@
+This program is a **real-time distance estimator using a camera feed and OpenCV**, designed to measure how far an object is from the camera based on its apparent size in pixels. Let me break it down step by step:
+
+---
+
+### 1. **Configuration Constants**
+- `knownObjectWidthCm`: The real-world width of the target object (e.g., tennis ball = 6.7 cm).
+- `focalLengthPx`: Initial guess for the camera’s focal length in pixels (used in distance formula).
+- `calibrationDistanceCm`: Reference distance for calibration.
+- HSV color ranges (`LOWER_HSV`, `UPPER_HSV`): Define the color of the object to detect (here, bright green/yellow).
+
+---
+
+### 2. **Object Detection (`detectObject`)**
+- Converts each frame to HSV color space.
+- Applies color thresholding to isolate the target object.
+- Cleans up noise with Gaussian blur + morphological operations.
+- Finds contours and selects the largest one above a minimum area threshold.
+- Returns a bounding box around the detected object.
+
+---
+
+### 3. **Distance Calculation**
+- Uses the **triangle similarity formula**:  
+  \[
+  \text{Distance} = \frac{\text{Known Width (cm)} \cdot \text{Focal Length (px)}}{\text{Object Width in Pixels}}
+  \]
+- If calibration is triggered (`C` key), the program recalculates focal length using the known width and calibration distance.
+
+---
+
+### 4. **Main Loop**
+- Captures frames from the camera.
+- Detects the object and calculates its distance.
+- Draws:
+  - Bounding box around the object.
+  - Center point marker.
+  - Distance text overlay (e.g., "45.2 cm").
+  - Object width in pixels.
+- If no object is found, displays "Searching for object…".
+- Shows FPS and current focal length at the bottom.
+
+---
+
+### 5. **Controls**
+- **C key**: Calibrate focal length at the known calibration distance.
+- **ESC / Q key**: Exit program.
+
+---
+
+### 6. **Output**
+- A live video window titled *"Real-Time Distance Estimator"*.
+- Visual overlays: bounding box, distance in cm, pixel width, FPS, and calibration info.
+- Console logs for calibration success/failure and exit status.
+
+---
+
+### 🔑 In essence:
+This code tracks a colored object (like a tennis ball), measures its apparent size in pixels, and estimates its distance from the camera using geometry. Calibration allows you to fine-tune focal length for accuracy. It’s a practical example of **computer vision + real-time measurement**.
+
+---
+
+Would you like me to **annotate the code with inline comments** so you can see exactly what each block does, or would you prefer a **flowchart-style explanation** of the program’s logic?
