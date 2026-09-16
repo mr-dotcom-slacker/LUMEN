@@ -1,0 +1,31 @@
+**This code is a GPS Distance-to-Steps Converter for smart glasses navigation.**
+
+Here's what it does step-by-step:
+
+1. **Takes User Input:**
+   - Distance to travel (in kilometers)
+   - User's average step length (in meters, like 0.75m per step)
+   - Direction of travel (North, South, East, or West)
+
+2. **Validates Input:**
+   - Rejects negative numbers or zero values
+   - Loops until valid input is received
+   - Handles non-numeric input gracefully
+
+3. **Performs Calculation:**
+   - Converts the distance from kilometers to meters
+   - Divides distance by step length to get total steps needed
+   - Rounds to nearest whole number
+
+4. **Outputs a Navigation Summary:**
+   - Shows target distance, step length, direction, and calculated step count
+   - Provides guidance like: *"Head North and walk approximately 1333 steps to reach your destination"*
+
+**Use Case for LUMEN Smart Glasses:**
+Instead of showing users a map, the glasses could tell them "Walk 1500 steps east" for a hands-free, minimal-display navigation experience. This is particularly useful for visually-impaired users or situations where a screen isn't practical.
+
+**Example:**
+- Input: 1 km distance, 0.75m step length, East
+- Output: ~1333 steps heading East
+
+The code is well-structured with error handling and formatted output, making it production-ready for integration into the smart glasses firmware.
